@@ -4,13 +4,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.*;
+import java.io.Serializable;
 
 /**
  * Created by hzllb on 2018/11/11.
  */
 @Getter
 @Setter
-public class UserModel {
+public class UserModel implements Serializable {
     private Integer id;
     @NotBlank(message = "用户名不能为空")
     private String name;

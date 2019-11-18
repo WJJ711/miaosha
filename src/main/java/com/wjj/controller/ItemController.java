@@ -4,16 +4,19 @@ import com.wjj.common.Const;
 import com.wjj.controller.viewobject.ItemVO;
 import com.wjj.error.BusinessException;
 import com.wjj.response.CommonReturnType;
+import com.wjj.service.ICacheService;
 import com.wjj.service.IItemService;
 import com.wjj.service.model.ItemModel;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +30,12 @@ import java.util.stream.Collectors;
 public class ItemController {
     @Autowired
     private IItemService iItemService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Autowired
+    private ICacheService iCacheService;
 
     @RequestMapping(value = "/create",method = {RequestMethod.POST},consumes = {Const.CONTENT_TYPE_FORMED})
     @ResponseBody
@@ -49,7 +58,24 @@ public class ItemController {
     @RequestMapping(value = "/get",method = {RequestMethod.GET})
     @ResponseBody
     public CommonReturnType getItem(@RequestParam("id") Integer id){
-        ItemModel itemModel = iItemService.getItemById(id);
+
+        ItemModel itemModel=null;
+        //现在本地缓存中找
+        itemModel = (ItemModel) iCacheService.getFromCommonCache("item_" + id);
+        if (itemModel==null){
+            //根据商品的id到redis内获取
+            itemModel = (ItemModel) redisTemplate.opsForValue().get("item_" + id);
+            //若redis内不存在对应的itemModel，则访问下游service
+            if (itemModel==null){
+                itemModel = iItemService.getItemById(id);
+                //设置itemModel到redis内
+                redisTemplate.opsForValue().set("item_"+id,itemModel);
+                redisTemplate.expire("item_"+id,10, TimeUnit.MINUTES);
+            }
+            //填充本地缓存
+            iCacheService.setCommonCache("item_" + id,itemModel);
+        }
+
         ItemVO itemVO = convertVOFromModel(itemModel);
 
         return CommonReturnType.create(itemVO);
