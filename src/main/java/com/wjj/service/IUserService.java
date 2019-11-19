@@ -15,4 +15,6 @@ public interface IUserService {
     这里encrptPassword已经是加密后的密码
      */
     UserModel validateLogin(String telphone,String encrptPassword) throws BusinessException;
+
+    UserModel getUserByIdInCache(Integer id);
 }
