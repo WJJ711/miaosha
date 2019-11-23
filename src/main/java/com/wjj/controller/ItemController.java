@@ -6,6 +6,7 @@ import com.wjj.error.BusinessException;
 import com.wjj.response.CommonReturnType;
 import com.wjj.service.ICacheService;
 import com.wjj.service.IItemService;
+import com.wjj.service.IPromoService;
 import com.wjj.service.model.ItemModel;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.BeanUtils;
@@ -36,6 +37,9 @@ public class ItemController {
 
     @Autowired
     private ICacheService iCacheService;
+
+    @Autowired
+    private IPromoService iPromoService;
 
     @RequestMapping(value = "/create",method = {RequestMethod.POST},consumes = {Const.CONTENT_TYPE_FORMED})
     @ResponseBody
@@ -106,5 +110,12 @@ public class ItemController {
             itemVO.setPromoStatus(0);
         }
         return itemVO;
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/publishpromo",method = {RequestMethod.GET})
+    public CommonReturnType publishpromo(@RequestParam(name = "id") Integer id){
+        iPromoService.publishPromo(id);
+        return CommonReturnType.create(null);
     }
 }

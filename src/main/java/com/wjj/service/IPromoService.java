@@ -1,5 +1,6 @@
 package com.wjj.service;
 
+import com.wjj.error.BusinessException;
 import com.wjj.service.model.PromoModel;
 
 /**
@@ -9,4 +10,9 @@ import com.wjj.service.model.PromoModel;
  */
 public interface IPromoService {
     PromoModel getPromoByItemId(Integer itemId);
+
+    void publishPromo(Integer promoId);
+
+
+    String generateSecondKillToken(Integer promoId, Integer itemId, Integer userId) throws BusinessException;
 }
